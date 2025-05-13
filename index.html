@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>PDFハッシュ計算ツール</title>
+  <style>
+    body {
+      font-family: "Helvetica Neue", sans-serif;
+      background: #f7f9fc;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      padding: 2rem 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 600px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1.2rem;
+      color: #333;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    button {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.9rem;
+      border: none;
+      background: #007acc;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #005fa3;
+    }
+
+    .hash-output-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      flex-direction: column;
+    }
+
+    .hash-box {
+      background: #f0f0f0;
+      padding: 0.8rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      white-space: nowrap;
+      width: 100%;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+
+    .copy-button {
+      align-self: flex-end;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.8rem;
+      background: #6c757d;
+    }
+
+    .copy-button:hover {
+      background: #5a6268;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>PDFハッシュ計算ツール</h1>
+
+    <label for="fileInput">PDFファイルを選択:</label>
+    <input type="file" id="fileInput" accept="application/pdf" />
+
+    <label>アルゴリズムを選択:</label>
+    <div class="radio-group">
+      <label><input type="radio" name="algorithm" value="SHA-256" checked> SHA-256</label>
+      <label><input type="radio" name="algorithm" value="SHA-512"> SHA-512</label>
+    </div>
+
+    <button id="calcButton">ハッシュを計算</button>
+
+    <div class="hash-output-group" id="outputSection" style="display:none;">
+      <div class="hash-box" id="hashOutput">ここにハッシュが表示されます</div>
+      <button class="copy-button" onclick="copyHash()">コピー</button>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById("fileInput");
+    const calcButton = document.getElementById("calcButton");
+    const hashOutput = document.getElementById("hashOutput");
+    const outputSection = document.getElementById("outputSection");
+
+    calcButton.addEventListener("click", async () => {
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("PDFファイルを選択してください。");
+        return;
+      }
+
+      const algorithm = document.querySelector('input[name="algorithm"]:checked').value;
+
+      const arrayBuffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest(algorithm, arrayBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+      hashOutput.textContent = hashHex;
+      outputSection.style.display = "flex";
+    });
+
+    function copyHash() {
+      const text = hashOutput.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("ハッシュ値をコピーしました！");
+      });
+    }
+  </script>
+</body>
+</html>
